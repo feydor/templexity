@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 // three.js globals
 let camera, scene, renderer;
-let geometry, material, mesh, grid;
+let geometry, material, mesh;
 const startingZ = 200;
 
 function App() {
@@ -24,7 +24,6 @@ function App() {
     let y = 0;
     let r = 0.1;
     const a = 1.00098;
-    const theta = 45;
     for (let t = 0; t < ticks; ++t) {
       r *= a;
       x = r * Math.cos(t);
@@ -40,8 +39,8 @@ function App() {
     //const axesHelper = new THREE.AxesHelper(100);
     //scene.add(axesHelper);
 
-    const size = 400;
-    const divisions = 40;
+    // const size = 400;
+    // const divisions = 40;
     //grid = new THREE.GridHelper(size, divisions, 0x0000ff, 0x808080);
     //grid.position.y = - 50;
     //grid.rotation.x = 90 * Math.PI / 180;
@@ -62,7 +61,8 @@ function App() {
     controls.update();
     animate();
 
-    return () => mountRef.current.removeChild(renderer.domElement);
+    const currentRef = mountRef.current;
+    return () => currentRef.removeChild(renderer.domElement);
   }, []);
 
 
