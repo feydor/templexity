@@ -1,78 +1,132 @@
 import './App.css';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+// import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 
 // three.js globals
 let camera, scene, renderer;
 let geometry, material, mesh;
 const startingZ = 200;
 
+const Pages = {
+    P1: 0,
+    P2: 1,
+    P3: 2
+};
+
 function App() {
   const mountRef = useRef(null);
+  const [page, setPage] = useState(Pages.P1);
 
   // setup three.js, mount renderer, animate, demount
   useEffect(() => {
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
-	  camera.position.z = startingZ;
+    setupThree(mountRef);
 
-  	scene = new THREE.Scene();
+    runPage(page);
 
-    const points = [];
-    const ticks = 9999;
-    let x = 0;
-    let y = 0;
-    let r = 0.1;
-    const a = 1.00098;
-    for (let t = 0; t < ticks; ++t) {
-      r *= a;
-      x = r * Math.cos(t);
-      y = r * Math.sin(t);
-      points.push(new THREE.Vector3(x, y, 0));
-    }
-
-    material = new THREE.LineBasicMaterial({ color: 0xffffff });
-    geometry = new THREE.BufferGeometry().setFromPoints(points);
-    mesh = new THREE.Line(geometry, material);
-    scene.add(mesh);
-
-    //const axesHelper = new THREE.AxesHelper(100);
-    //scene.add(axesHelper);
-
-    // const size = 400;
-    // const divisions = 40;
-    //grid = new THREE.GridHelper(size, divisions, 0x0000ff, 0x808080);
-    //grid.position.y = - 50;
-    //grid.rotation.x = 90 * Math.PI / 180;
-    //scene.add(grid);
-
-  	renderer = new THREE.WebGLRenderer({ antialias: true });
-  	renderer.setSize(window.innerWidth, window.innerHeight);
-    mountRef.current.appendChild(renderer.domElement);
-    window.addEventListener("resize", onWindowResize, false);
-    const controls = new OrbitControls( camera, renderer.domElement );
-    controls.enablePan = false;
-		controls.enableZoom = false;
-		controls.enableDamping = true;
-		controls.minPolarAngle = 0.8;
-		controls.maxPolarAngle = 2.4;
-		controls.dampingFactor = 0.07;
-		controls.rotateSpeed = 0.07;
-    controls.update();
-    animate();
+    const changePage = () => {
+      switch (page) {
+        case Pages.P1:
+          setPage(Pages.P2);
+          break;
+        case Pages.P2:
+          setPage(Pages.P3);
+          break;
+        case Pages.P3:
+          setPage(Pages.P1);
+          break;
+        default:
+          setPage(Pages.P1);
+          break;
+      }
+    };
 
     const currentRef = mountRef.current;
-    return () => currentRef.removeChild(renderer.domElement);
-  }, []);
+    document.getElementById('button').addEventListener('click', changePage);
 
+    return () => {
+      document.getElementById('button').removeEventListener('click', changePage);
+      currentRef.removeChild(renderer.domElement);
+    }
+  });
 
   return (
-    <div className="Three" ref={mountRef}></div>
+    <div>
+      <div className="THREE" ref={mountRef}></div>
+      <button id="button" href="#"> > </button>
+    </div>
   );
 }
 
-const animate = () => {
-  requestAnimationFrame(animate);
+const setupThree = (mountRef) => {
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+  camera.position.z = startingZ;
+  scene = new THREE.Scene();
+
+  /*
+  const gui = new GUI();
+  const cameraFolder = gui.addFolder('Camera');
+  cameraFolder.add(camera.position, 'z', 0, 10);
+  cameraFolder.open();
+  */
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  mountRef.current.appendChild(renderer.domElement);
+  window.addEventListener("resize", onWindowResize, false);
+  const controls = new OrbitControls( camera, renderer.domElement );
+  controls.enablePan = false;
+  controls.enableZoom = false;
+  controls.enableDamping = true;
+  controls.minPolarAngle = 0.8;
+  controls.maxPolarAngle = 2.4;
+  controls.dampingFactor = 0.07;
+  controls.rotateSpeed = 0.07;
+  controls.update();
+}
+
+const runPage = (page) => {
+    switch (page) {
+      case Pages.P1: page1(); break;
+      case Pages.P2: page2(); break;
+      case Pages.P3: page3(); break;
+      default: console.log("default state"); break;
+    }
+}
+
+// P1: arithmetic spirals infinitely inwards twoards Zero
+const page1 = () => {
+  const points = [];
+  const ticks = 9999;
+  let x = 0;
+  let y = 0;
+  let r = 0.1;
+  const a = 1.00098;
+  for (let t = 0; t < ticks; ++t) {
+    r *= a;
+    x = r * Math.cos(t);
+    y = r * Math.sin(t);
+    points.push(new THREE.Vector3(x, y, 0));
+  }
+
+  material = new THREE.LineBasicMaterial({ color: 0xffffff });
+  geometry = new THREE.BufferGeometry().setFromPoints(points);
+  mesh = new THREE.Line(geometry, material);
+  scene.add(mesh);
+
+  animateS1();
+}
+
+const page2 = () => {
+  console.log("state2");
+};
+const page3 = () => {
+  console.log("state3");
+};
+
+const animateS1 = () => {
+  requestAnimationFrame(animateS1);
   // mesh.rotation.x += 0.02;
   // mesh.rotation.z += 0.001;
   camera.position.z -= 1;
