@@ -4,6 +4,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 // import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 
+import Solver from './math.js';
+
 // three.js globals
 let scene, camera, renderer;
 
@@ -67,6 +69,7 @@ function App() {
 
   return (
     <div>
+      <p>({Solver.quadratic(2, 4, 2)[0]}, {Solver.quadratic(2, 4, 2)[1]})</p>
       <div className="THREE" ref={mountRef}></div>
       <button id="button" href="#"> > </button>
     </div>
