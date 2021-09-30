@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 // import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 
-import Solver from './math.js';
+// import Solver from './math.js';
 
 // three.js globals
 let scene, camera, renderer;
@@ -42,6 +42,7 @@ function App() {
 
     const changePage = () => {
       scene.remove.apply(scene, scene.children);
+      controls.reset();
       switch (page) {
         case Pages.P1:
           setPage(Pages.P2);
@@ -69,7 +70,6 @@ function App() {
 
   return (
     <div>
-      <p>({Solver.quadratic(2, 4, 2)[0]}, {Solver.quadratic(2, 4, 2)[1]})</p>
       <div className="THREE" ref={mountRef}></div>
       <button id="button" href="#"> > </button>
     </div>
@@ -88,32 +88,30 @@ const runPage = (page) => {
 // P1: arithmetic spirals infinitely inwards twoards Zero
 const page1 = () => {
   const points = [];
-  const ticks = 9999;
+  const ticks = 99999;
   let x = 0;
   let y = 0;
   let r = 0.1;
-  const a = 1.00298;
-  for (let t = 0; t < ticks; ++t) {
+  const a = 1.00198;
+  for (let t = 0; t < ticks; t += 0.1) {
     r *= a;
     x = r * Math.cos(t);
     y = r * Math.sin(t);
     points.push(new THREE.Vector3(x, y, 0));
   }
 
-  const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+  const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 20 });
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
   const mesh = new THREE.Line(geometry, material);
   scene.add(mesh);
 
+  camera.position.z = 1;
   const animate = () => {
     requestAnimationFrame(animate);
-    camera.position.z -= 2;
-    if (camera.position.z < 50) {
-      camera.position.z = 3333;
-    }
+    camera.rotation.z += 0.1;
     renderer.render(scene, camera);
   };
-  animate();
+  requestAnimationFrame(animate);
 }
 
 const page2 = () => {
@@ -127,12 +125,13 @@ const page2 = () => {
 
   const animate = () => {
     requestAnimationFrame(animate);
-    mesh.rotation.x += 0.01;
+    camera.rotation.z = 0;
+    mesh.rotation.x -= 0.01;
     mesh.rotation.y += 0.01;
     camera.position.z = 3333;
     renderer.render(scene, camera);
   };
-  animate();
+  requestAnimationFrame(animate);
 };
 
 const page3 = () => {
