@@ -20,24 +20,12 @@ class Page {
 }
 
 // P1: arithmetic spirals infinitely inwards towards Zero
+// equ: r = a*r(t), x = r*cos(t), y = r*sin(t)
 class Page1 extends Page {
   constructor() {
     const {scene, camera} = makeScene();
 
-    const points = [];
-    {
-      const ticks = 999;
-      let x = 0;
-      let y = 0;
-      let r = 0.1;
-      const a = 1.00198;
-      for (let t = 0; t < ticks; t += 0.1) {
-        r *= a;
-        x = r * Math.cos(t);
-        y = r * Math.sin(t);
-        points.push(new THREE.Vector3(x, y, 0));
-      }
-    }
+    const points = createLogarithmicSpiral(1.00198, 0.05, 0.0001, false);
 
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 20 });
@@ -83,20 +71,7 @@ class Page3 extends Page {
   constructor() {
     const {scene, camera} = makeScene();
 
-    const points = [];
-    {
-      const ticks = 999;
-      let x = 0;
-      let y = 0;
-      let r = 0.1;
-      const a = 1.00198;
-      for (let t = 0; t < ticks; t += 0.1) {
-        r *= a;
-        x = r * Math.cos(t);
-        y = r * Math.sin(t);
-        points.push(new THREE.Vector3(x, y, t));
-      }
-    }
+    const points = createArithmeticSpiral(1.00198, 0.1, true);
 
     const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 20 });
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -112,6 +87,40 @@ class Page3 extends Page {
   animate(time) {
     this.scene.mesh.rotation.z = time * 1;
   }
+}
+
+function createArithmeticSpiral(a, r_i, rising) {
+  const points = [];
+  const ticks = 999;
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let r = r_i;
+  for (let t = 0; t < ticks; t += 0.1) {
+    r *= a;
+    x = r * Math.cos(t);
+    y = r * Math.sin(t);
+    z = rising ? t : 0;
+    points.push(new THREE.Vector3(x, y, z));
+  }
+  return points;
+}
+
+function createLogarithmicSpiral(a, r_i, k, rising) {
+  const points = [];
+  const ticks = 999;
+  let x = 0;
+  let y = 0;
+  let z = 0;
+  let r = r_i;
+  for (let t = 0; t < ticks; t += 0.1) {
+    r *= a * (Math.E ** (k*t));
+    x = r * Math.cos(t);
+    y = r * Math.sin(t);
+    z = rising ? t : 0;
+    points.push(new THREE.Vector3(x, y, z));
+  }
+  return points;
 }
 
 function makeScene() {

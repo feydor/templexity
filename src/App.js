@@ -2,14 +2,13 @@ import './App.css';
 import {useEffect, useRef} from 'react';
 import {gRenderer} from './Globals.js';
 import {Page1, Page2, Page3} from './Page.js';
-// import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
-// import Solver from './math.js';
 
 // local globals
 let currPage = 0;
 const NUM_PAGES = 3;
 let pages = [];
 
+// React entrypoint
 function App() {
   const mountRef = useRef(null);
 
@@ -21,6 +20,7 @@ function App() {
     mountRef.current.appendChild(gRenderer.domElement);
     window.addEventListener("resize", onWindowResize(pages[currPage].camera), false);
 
+    // updates global page counter onclick of next button
     const changePage = () => {
       if (++currPage >= NUM_PAGES) {
         currPage = 0;
@@ -63,6 +63,7 @@ function resizeRendererToDisplaySize(renderer) {
   return needResize;
 }
 
+// control logic for rendering pages
 const render = (time) => {
   time *= 0.001;
   resizeRendererToDisplaySize(gRenderer);
