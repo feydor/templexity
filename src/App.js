@@ -7,63 +7,39 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 // import Solver from './math.js';
 
 // three.js globals
-let scene, camera, renderer;
-
-const Pages = {
-    P1: 0,
-    P2: 1,
-    P3: 2
-};
+let camera, renderer, currScene = 0;
+const NUM_SCENES = 3;
+let scenes = [];
 
 function App() {
   const mountRef = useRef(null);
-  const [page, setPage] = useState(Pages.P1);
+  // const [page, setPage] = useState(Pages.P1);
 
   // setup three.js, mount renderer, animate, demount
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  scenes[0] = init_scene1();
+  console.log(scenes[0]);
+  scenes[1] = init_scene2();
+  scenes[2] = init_scene3();
+
   useEffect(() => {
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
-    camera.position.z = 0;
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
     mountRef.current.appendChild(renderer.domElement);
-    window.addEventListener("resize", onWindowResize, false);
-    const controls = new OrbitControls( camera, renderer.domElement );
-    controls.enablePan = false;
-    controls.enableZoom = false;
-    controls.enableDamping = true;
-    controls.minPolarAngle = 0.8;
-    controls.maxPolarAngle = 2.4;
-    controls.dampingFactor = 0.07;
-    controls.rotateSpeed = 0.07;
-    controls.update();
+    window.addEventListener("resize", onWindowResize(scenes[currScene]), false);
 
-    runPage(page);
-
-    const changePage = () => {
-      scene.remove.apply(scene, scene.children);
-      controls.reset();
-      switch (page) {
-        case Pages.P1:
-          setPage(Pages.P2);
-          break;
-        case Pages.P2:
-          setPage(Pages.P3);
-          break;
-        case Pages.P3:
-          setPage(Pages.P1);
-          break;
-        default:
-          setPage(Pages.P1);
-          break;
+    const changeScene = () => {
+      if (++currScene >= NUM_SCENES) {
+        currScene = 0;
       }
     };
 
+    render();
+
     const currentRef = mountRef.current;
-    document.getElementById('button').addEventListener('click', changePage);
+    document.getElementById('button').addEventListener('click', changeScene);
 
     return () => {
-      document.getElementById('button').removeEventListener('click', changePage);
+      document.getElementById('button').removeEventListener('click', changeScene);
       currentRef.removeChild(renderer.domElement);
     }
   });
@@ -76,87 +52,140 @@ function App() {
   );
 }
 
-const runPage = (page) => {
-    switch (page) {
-      case Pages.P1: page1(); break;
-      case Pages.P2: page2(); break;
-      case Pages.P3: page3(); break;
-      default: console.log("default state"); break;
-    }
+// P1: arithmetic spirals infinitely inwards towards Zero
+const onWindowResize = ({camera}) => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
-// P1: arithmetic spirals infinitely inwards twoards Zero
-const page1 = () => {
+function init_scene1() {
+  const {scene, camera} = makeScene();
+
   const points = [];
-  const ticks = 99999;
-  let x = 0;
-  let y = 0;
-  let r = 0.1;
-  const a = 1.00198;
-  for (let t = 0; t < ticks; t += 0.1) {
-    r *= a;
-    x = r * Math.cos(t);
-    y = r * Math.sin(t);
-    points.push(new THREE.Vector3(x, y, 0));
+  {
+    const ticks = 999;
+    let x = 0;
+    let y = 0;
+    let r = 0.1;
+    const a = 1.00198;
+    for (let t = 0; t < ticks; t += 0.1) {
+      r *= a;
+      x = r * Math.cos(t);
+      y = r * Math.sin(t);
+      points.push(new THREE.Vector3(x, y, 0));
+    }
+  }
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 20 });
+  const mesh = new THREE.Line(geometry, material);
+  scene.add(mesh);
+  scene.mesh = mesh;
+  camera.position.z = 1;
+  return {scene, camera};
+};
+
+function init_scene2() {
+  const {scene, camera} = makeScene();
+
+  const geometry = new THREE.IcosahedronGeometry(666);
+  const material = new THREE.MeshBasicMaterial({ color:0x00d333, wireframe: true });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.flatShading = true;
+  scene.add(mesh);
+  const light = new THREE.AmbientLight( { color: 0x404040, intensity: 1.2 } );
+  scene.add(light);
+  scene.mesh = mesh;
+  return {scene, camera};
+};
+
+function init_scene3() {
+  const {scene, camera} = makeScene();
+
+  const points = [];
+  {
+    const ticks = 999;
+    let x = 0;
+    let y = 0;
+    let r = 0.1;
+    const a = 1.00198;
+    for (let t = 0; t < ticks; t += 0.1) {
+      r *= a;
+      x = r * Math.cos(t);
+      y = r * Math.sin(t);
+      points.push(new THREE.Vector3(x, y, t));
+    }
   }
 
   const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 20 });
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
   const mesh = new THREE.Line(geometry, material);
   scene.add(mesh);
-
-  camera.position.z = 1;
-  const animate = () => {
-    requestAnimationFrame(animate);
-    camera.rotation.z += 0.1;
-    renderer.render(scene, camera);
-  };
-  requestAnimationFrame(animate);
-}
-
-const page2 = () => {
-  const material = new THREE.MeshNormalMaterial({ color:0x00d333, flatShading: true });
-  const geometry = new THREE.DodecahedronGeometry(666);
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.flatShading = true;
-  scene.add(mesh);
-  const light = new THREE.AmbientLight( { color: 0x404040, intensity: 1.2 } );
-  scene.add( light );
-
-  const animate = () => {
-    requestAnimationFrame(animate);
-    camera.rotation.z = 0;
-    mesh.rotation.x -= 0.01;
-    mesh.rotation.y += 0.01;
-    camera.position.z = 3333;
-    renderer.render(scene, camera);
-  };
-  requestAnimationFrame(animate);
+  scene.mesh = mesh;
+  camera.position.set( 100, 100, 100 );
+  camera.lookAt( 0, 0, 0 );
+  return {scene, camera};
 };
 
-const page3 = () => {
-  const material = new THREE.MeshNormalMaterial({ color:0x00d333, flatShading: true });
-  const geometry = new THREE.DodecahedronGeometry(333);
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.flatShading = true;
-  scene.add(mesh);
-  const light = new THREE.AmbientLight( { color: 0x404040, intensity: 1.2 } );
-  scene.add( light );
+function makeScene() {
+  const scene = new THREE.Scene();
 
-  const animate = () => {
-    requestAnimationFrame(animate);
-    mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.01;
-    camera.position.z = 3333;
-    renderer.render(scene, camera);
-  };
-  animate();
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+  camera.position.z = 2;
+  camera.position.set(0, 1, 2);
+  camera.lookAt(0, 0, 0);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enablePan = false;
+  controls.enableZoom = false;
+  controls.enableDamping = true;
+  controls.minPolarAngle = 0.8;
+  controls.maxPolarAngle = 2.4;
+  controls.dampingFactor = 0.07;
+  controls.rotateSpeed = 0.07;
+  controls.update();
+
+  {
+    const color = 0xFFFFFF;
+    const intensity = 1;
+    const light = new THREE.DirectionalLight(color, intensity);
+    light.position.set(-1, 2, 4);
+    scene.add(light);
+  }
+
+  return {scene, camera};
 };
 
-const onWindowResize = () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize( window.innerWidth, window.innerHeight );
-}
+const renderScene = (a_scene) => {
+  const {scene, camera} = a_scene;
+  renderer.render(scene, camera);
+};
+
+// TODO: Make a Scene class with:
+// - abstract animate method
+// - abstract init or constructor
+// - default render method
+const render = (time) => {
+  time *= 0.001;
+  // resizeRendererToDisplaySize(renderer);
+
+  // animation updates here
+  {
+    scenes[0].scene.mesh.rotation.z = time * 0.1;
+  }
+
+  {
+    scenes[1].scene.mesh.rotation.x = time * -0.01;
+    scenes[1].scene.mesh.rotation.y = time * 0.01;
+    // camera.position.z = 3333;
+  }
+
+  {
+    scenes[2].scene.mesh.rotation.z = time * 0.1;
+  }
+
+  renderScene(scenes[currScene]);
+  requestAnimationFrame(render);
+};
 
 export default App;
