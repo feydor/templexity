@@ -29,7 +29,7 @@ class Page1 extends Page {
     // const points = createLogarithmicSpiral(1.00198, 0.05, 0.0001, false);
 
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 20 });
+    const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 1 });
     const mesh = new THREE.Line(geometry, material);
     scene.add(mesh);
     scene.mesh = mesh;
@@ -80,7 +80,7 @@ class Page3 extends Page {
       }
     });
 
-    const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 20 });
+    const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 1 });
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const mesh = new THREE.Line(geometry, material);
     scene.add(mesh);
@@ -98,10 +98,59 @@ class Page3 extends Page {
   }
 }
 
+class Page4 extends Page {
+  constructor() {
+    const {scene, camera} = makeScene();
+
+    let a = 3;
+    let b = 4;
+    let c = Math.sqrt(a**2 + b**2);
+    let bcAngleRadians = Math.atan(a / b);
+    const rightTriangle = createRightTriangle(a, b);
+    // const rightTriangle = createSpiral(1);
+    const aSquared = createSquare({x: b, y: 0}, a);
+    const bSquared = createSquare({x: 0, y: 0}, b);
+    const cSquared = createSquare({x: 0, y: 0}, c);
+
+    const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 2 });
+    
+    const triGeometry = new THREE.BufferGeometry().setFromPoints(rightTriangle);
+    const triMesh = new THREE.Line(triGeometry, material);
+    scene.add(triMesh);
+
+    const aSquareGeometry = new THREE.BufferGeometry().setFromPoints(aSquared);
+    const aSquareMesh = new THREE.Line(aSquareGeometry, material);
+    scene.add(aSquareMesh);
+
+    const bSquareGeometry = new THREE.BufferGeometry().setFromPoints(bSquared);
+    const bSquareMesh = new THREE.Line(bSquareGeometry, material);
+    bSquareMesh.rotation.x = Math.PI; // 180 degrees
+    scene.add(bSquareMesh);
+
+    const cSquareGeometry = new THREE.BufferGeometry().setFromPoints(cSquared);
+    const cSquareMesh = new THREE.Line(cSquareGeometry, material);
+    cSquareMesh.rotation.z = bcAngleRadians;
+    scene.add(cSquareMesh);
+
+    scene.mesh = triMesh;
+    camera.position.set( 0, 0, 8 );
+    camera.lookAt( 0, 0, 0 );
+    
+    const axesHelper = new THREE.AxesHelper( 10 );
+    scene.add( axesHelper );
+
+    super(scene, camera, 4);
+  }
+
+  animate(time) {
+
+  }
+}
+
 // spiral eq: r = r(φ), x = r*cos(φ), y = r*sin(φ)
 // arithmetic: r(φ) = a*φ
 // logarithmic: r(φ) = e^(k*φ)
-function createSpiral(initialRadius, deltaRadius = phi => phi,
+function createSpiral(initialRadius, deltaRadius = phi => 1,
     deltaZ = phi => 0, deltaPhi = phi => phi+0.4 ) {
   const points = [];
   const degrees = 360*3;
@@ -129,6 +178,44 @@ function createLogarithmicSpiral(initialRadius, amplitude, k, deltaZ = phi => 0)
     deltaZ, phi => 0.1+phi);
 }
 
+function createRightTriangle(a, b) {
+  const c = Math.sqrt(a**2 + b**2);
+  const points = [];
+  
+  // counterclockwise from bottom left
+  points.push(new THREE.Vector3(0, 0, 0));
+  points.push(new THREE.Vector3(b, 0, 0));
+
+  points.push(new THREE.Vector3(b, 0, 0));
+  points.push(new THREE.Vector3(b, a, 0));
+
+  points.push(new THREE.Vector3(b, a, 0));
+  points.push(new THREE.Vector3(0, 0, 0));
+  
+  return points;
+}
+
+function createSquare(startPoint, side) {
+  const points = [];
+  const x = startPoint.x;
+  const y = startPoint.y;
+
+  // counter-clockwise from bottom left
+  points.push(new THREE.Vector3(x, y, 0));
+  points.push(new THREE.Vector3(x+side, y, 0));
+
+  points.push(new THREE.Vector3(x+side, y, 0));
+  points.push(new THREE.Vector3(x+side, y+side, 0));
+
+  points.push(new THREE.Vector3(x+side, y+side, 0));
+  points.push(new THREE.Vector3(x, y+side, 0));
+
+  points.push(new THREE.Vector3(x, y+side, 0));
+  points.push(new THREE.Vector3(x, y, 0));
+
+  return points;
+}
+
 function makeScene() {
   const scene = new THREE.Scene();
 
@@ -147,11 +234,11 @@ function makeScene() {
     const color = 0xFFFFFF;
     const intensity = 1;
     const light = new THREE.DirectionalLight(color, intensity);
-    light.position.set(-1, 2, 4);
+    light.position.set(0, 0, 1);
     scene.add(light);
   }
 
   return {scene, camera};
 };
 
-export {Page1, Page2, Page3};
+export {Page1, Page2, Page3, Page4};

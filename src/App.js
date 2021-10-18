@@ -1,11 +1,11 @@
 import './App.css';
 import {useEffect, useRef} from 'react';
 import {gRenderer} from './Globals.js';
-import {Page1, Page2, Page3} from './Page.js';
+import {Page1, Page2, Page3, Page4} from './Page.js';
 
 // local globals
 let currPage = 0;
-const NUM_PAGES = 3;
+const NUM_PAGES = 4;
 let pages = [];
 
 // React entrypoint
@@ -15,6 +15,7 @@ function App() {
   pages[0] = new Page1();
   pages[1] = new Page2();
   pages[2] = new Page3();
+  pages[3] = new Page4();
 
   useEffect(() => {
     mountRef.current.appendChild(gRenderer.domElement);
