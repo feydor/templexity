@@ -1,2 +1,2 @@
 # templexity
-`r = ar(t)`
+`r = r(φ(t))`
