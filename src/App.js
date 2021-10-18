@@ -68,6 +68,8 @@ function resizeRendererToDisplaySize(renderer) {
 const render = (time) => {
   time *= 0.001;
   resizeRendererToDisplaySize(gRenderer);
+  document.querySelectorAll('.dg').forEach(div => div.style.display = 'hidden');
+
 
   for (const page of pages) {
     page.animate(time);

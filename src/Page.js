@@ -1,16 +1,18 @@
 // Page.js - page classes with animation methods
-import {gRenderer, THREE} from './Globals.js';
+import {gRenderer, THREE, GUI} from './Globals.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 class Page {
-  constructor(scene, camera, npage) {
+  constructor(scene, camera, npage, gui = null) {
     this.scene = scene;
     this.camera = camera;
+    this.gui = gui;
     this.npage = npage;
   }
 
   render() {
     gRenderer.render(this.scene, this.camera);
+    document.querySelectorAll('.dg').forEach(div => div.style.display = 'none');
   }
 
   // currPageIndex is 0-indexed
@@ -99,20 +101,29 @@ class Page3 extends Page {
 }
 
 class Page4 extends Page {
+  a = 3;
+  b = 4;
+  c = 5;
+  controller = null;
+
   constructor() {
     const {scene, camera} = makeScene();
 
     let a = 3;
-    let b = 4;
+    let b = 5;
     let c = Math.sqrt(a**2 + b**2);
     let bcAngleRadians = Math.atan(a / b);
     const rightTriangle = createRightTriangle(a, b);
-    // const rightTriangle = createSpiral(1);
     const aSquared = createSquare({x: b, y: 0}, a);
     const bSquared = createSquare({x: 0, y: 0}, b);
     const cSquared = createSquare({x: 0, y: 0}, c);
 
-    const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 2 });
+    const material = new THREE.LineDashedMaterial({
+      color: 0x00d333,
+      linewidth: 1,
+      dashSize: 0.3,
+      gapSize: 0.1,
+    });
     
     const triGeometry = new THREE.BufferGeometry().setFromPoints(rightTriangle);
     const triMesh = new THREE.Line(triGeometry, material);
@@ -133,18 +144,74 @@ class Page4 extends Page {
     scene.add(cSquareMesh);
 
     scene.mesh = triMesh;
-    camera.position.set( 0, 0, 8 );
+    scene.triangle = triMesh;
+    scene.aSquare = aSquareMesh;
+    scene.bSquare = bSquareMesh;
+    scene.cSquare = cSquareMesh;
+    camera.position.set( 0, 0, 16 );
     camera.lookAt( 0, 0, 0 );
     
     const axesHelper = new THREE.AxesHelper( 10 );
     scene.add( axesHelper );
 
     super(scene, camera, 4);
+
+    // create Gui
+    const gui = new GUI();
+    this.controller = gui.addFolder( 'Sides' );
+    const params = {
+      a: a,
+      b: b,
+    };
+    this.controller.add(params, 'a', 1, 10).step(1).onChange(() => {
+      this.a = params.a;
+      this.updateSquareA();
+      this.updateTriangle();
+    });
+    this.controller.add(params, 'b', 1, 10).step(1).onChange(() => {
+      this.b = params.b;
+      this.updateSquareB();
+      this.updateTriangle();
+    });
+    this.controller.open();
   }
 
-  animate(time) {
+  updateTriangle() {
+    const triangle = createRightTriangle(this.a, this.b);
+    this.scene.triangle.geometry.dispose();
+    this.scene.triangle.geometry = new THREE.BufferGeometry().setFromPoints(triangle);
+    this.updateSquareA();
+    this.updateSquareB();
 
+    this.c = Math.sqrt(this.a**2 + this.b**2);
+    this.updateSquareC();
   }
+
+  updateSquareC() {
+    const cSquared = createSquare({x: 0, y: 0}, this.c);
+    this.scene.cSquare.geometry.dispose();
+    this.scene.cSquare.geometry = new THREE.BufferGeometry().setFromPoints(cSquared);
+    this.scene.cSquare.rotation.z = Math.atan(this.a / this.b);
+  }
+
+  updateSquareA() {
+    const aSquared = createSquare({x: this.b, y: 0}, this.a);
+    this.scene.aSquare.geometry.dispose();
+    this.scene.aSquare.geometry = new THREE.BufferGeometry().setFromPoints(aSquared);
+  }
+
+  updateSquareB() {
+    const bSquared = createSquare({x: 0, y: 0}, this.b);
+    this.scene.bSquare.geometry.dispose();
+    this.scene.bSquare.geometry = new THREE.BufferGeometry().setFromPoints(bSquared);
+  }
+
+  render() {
+    gRenderer.render(this.scene, this.camera);
+    document.querySelectorAll('.dg').forEach(div => div.style.display = 'block');
+  }
+
+  animate(time) {}
 }
 
 // spiral eq: r = r(φ), x = r*cos(φ), y = r*sin(φ)
@@ -181,7 +248,7 @@ function createLogarithmicSpiral(initialRadius, amplitude, k, deltaZ = phi => 0)
 function createRightTriangle(a, b) {
   const c = Math.sqrt(a**2 + b**2);
   const points = [];
-  
+
   // counterclockwise from bottom left
   points.push(new THREE.Vector3(0, 0, 0));
   points.push(new THREE.Vector3(b, 0, 0));
