@@ -2,6 +2,8 @@
 import {gRenderer, THREE, GUI} from './Globals.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
+const GRN_COLOR = 0x00d333;
+
 class Page {
   constructor(scene, camera, npage, gui = null) {
     this.scene = scene;
@@ -31,7 +33,7 @@ class Page1 extends Page {
     // const points = createLogarithmicSpiral(1.00198, 0.05, 0.0001, false);
 
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 1 });
+    const material = new THREE.LineBasicMaterial({ color: GRN_COLOR, linewidth: 1 });
     const mesh = new THREE.Line(geometry, material);
     scene.add(mesh);
     scene.mesh = mesh;
@@ -49,11 +51,11 @@ class Page1 extends Page {
 class Page2 extends Page {
   constructor() {
     const {scene, camera} = makeScene();
-    camera.position.z = 3333;
+    camera.position.z = 1222;
     camera.lookAt(0, 0, 0);
 
     const geometry = new THREE.IcosahedronGeometry(666);
-    const material = new THREE.MeshBasicMaterial({ color:0x00d333, wireframe: true });
+    const material = new THREE.MeshBasicMaterial({ color:GRN_COLOR, wireframe: true });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.flatShading = true;
     scene.add(mesh);
@@ -82,7 +84,7 @@ class Page3 extends Page {
       }
     });
 
-    const material = new THREE.LineBasicMaterial({ color: 0x00d333, linewidth: 1 });
+    const material = new THREE.LineBasicMaterial({ color: GRN_COLOR, linewidth: 1 });
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const mesh = new THREE.Line(geometry, material);
     scene.add(mesh);
@@ -118,9 +120,13 @@ class Page4 extends Page {
     const bSquared = createSquare({x: 0, y: 0}, b);
     const cSquared = createSquare({x: 0, y: 0}, c);
 
+    const aMaterial = new THREE.LineBasicMaterial({color: 0xed2939, linewidth: 2});
+    const bMaterial = new THREE.LineBasicMaterial({color: 0x007fff, linewidth: 2});
+    const cMaterial = new THREE.LineBasicMaterial({color: 0xfcffa4, linewidth: 2});
+
     const material = new THREE.LineDashedMaterial({
-      color: 0x00d333,
-      linewidth: 1,
+      color: 0xffffff,
+      linewidth: 2,
       dashSize: 0.3,
       gapSize: 0.1,
     });
@@ -130,16 +136,17 @@ class Page4 extends Page {
     scene.add(triMesh);
 
     const aSquareGeometry = new THREE.BufferGeometry().setFromPoints(aSquared);
-    const aSquareMesh = new THREE.Line(aSquareGeometry, material);
+    const aSquareMesh = new THREE.Line(aSquareGeometry, aMaterial);
+    // aSquareMesh.computeLineDistances();
     scene.add(aSquareMesh);
 
     const bSquareGeometry = new THREE.BufferGeometry().setFromPoints(bSquared);
-    const bSquareMesh = new THREE.Line(bSquareGeometry, material);
+    const bSquareMesh = new THREE.Line(bSquareGeometry, bMaterial);
     bSquareMesh.rotation.x = Math.PI; // 180 degrees
     scene.add(bSquareMesh);
 
     const cSquareGeometry = new THREE.BufferGeometry().setFromPoints(cSquared);
-    const cSquareMesh = new THREE.Line(cSquareGeometry, material);
+    const cSquareMesh = new THREE.Line(cSquareGeometry, cMaterial);
     cSquareMesh.rotation.z = bcAngleRadians;
     scene.add(cSquareMesh);
 
@@ -150,11 +157,11 @@ class Page4 extends Page {
     scene.cSquare = cSquareMesh;
     camera.position.set( 0, 0, 16 );
     camera.lookAt( 0, 0, 0 );
-    
-    const axesHelper = new THREE.AxesHelper( 10 );
-    scene.add( axesHelper );
 
     super(scene, camera, 4);
+
+    const axesHelper = new THREE.AxesHelper( 10 );
+    scene.add( axesHelper );
 
     // create Gui
     const gui = new GUI();
@@ -178,7 +185,6 @@ class Page4 extends Page {
 
   updateTriangle() {
     const triangle = createRightTriangle(this.a, this.b);
-    this.scene.triangle.geometry.dispose();
     this.scene.triangle.geometry = new THREE.BufferGeometry().setFromPoints(triangle);
     this.updateSquareA();
     this.updateSquareB();
@@ -189,20 +195,17 @@ class Page4 extends Page {
 
   updateSquareC() {
     const cSquared = createSquare({x: 0, y: 0}, this.c);
-    this.scene.cSquare.geometry.dispose();
     this.scene.cSquare.geometry = new THREE.BufferGeometry().setFromPoints(cSquared);
     this.scene.cSquare.rotation.z = Math.atan(this.a / this.b);
   }
 
   updateSquareA() {
     const aSquared = createSquare({x: this.b, y: 0}, this.a);
-    this.scene.aSquare.geometry.dispose();
     this.scene.aSquare.geometry = new THREE.BufferGeometry().setFromPoints(aSquared);
   }
 
   updateSquareB() {
     const bSquared = createSquare({x: 0, y: 0}, this.b);
-    this.scene.bSquare.geometry.dispose();
     this.scene.bSquare.geometry = new THREE.BufferGeometry().setFromPoints(bSquared);
   }
 
@@ -246,7 +249,6 @@ function createLogarithmicSpiral(initialRadius, amplitude, k, deltaZ = phi => 0)
 }
 
 function createRightTriangle(a, b) {
-  const c = Math.sqrt(a**2 + b**2);
   const points = [];
 
   // counterclockwise from bottom left
